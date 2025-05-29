@@ -15,7 +15,15 @@ export const createClient = async () => {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              // 设置 cookie 过期时间为 7 天
+              const expirationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+              cookieStore.set({
+                name,
+                value,
+                ...options,
+                expires: expirationDate,
+                path: '/',
+              });
             });
           } catch (error) {
             // The `set` method was called from a Server Component.

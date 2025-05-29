@@ -1,16 +1,56 @@
+"use client"
 import Hero from "@/components/hero";
+import MYBlog from "@/components/my-blog";
+import ArticleList from "@/components/article-list";
 import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
 import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { Box, Card, Flex, Text, Heading } from "@radix-ui/themes";
+// import { createBrowserClient } from "@/lib/supabaseClient";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useEffect, useState } from "react";
+import { Article } from "@lib/types/index";
 
-export default async function Home() {
+
+export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    async function fetchArticles() {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.log(error)
+        console.error("Error fetching articles:", error);
+      } else {
+        console.log(data)
+        setArticles(data);
+      }
+    }
+    fetchArticles();
+  }, [])
   return (
-    <>
-      <Hero />
+    <div className="flex flex-col gap-6 px-4">
+      <div className="flex align-center justify-center w-full h-full ">
+        <MYBlog />
+
+        {/* <Hero />
       <main className="flex-1 flex flex-col gap-6 px-4">
         <h2 className="font-medium text-xl mb-4">Next steps</h2>
         {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-      </main>
-    </>
+      </main> */}
+
+      </div>
+      <div className="w-full px-4">
+        <div className="max-w-screen-xl mx-auto">
+          <h3 className="text-2xl font-bold text-left mb-6">最新文章</h3>
+          <ArticleList articles={articles} />
+        </div>
+      </div>
+    </div>
+
   );
 }
