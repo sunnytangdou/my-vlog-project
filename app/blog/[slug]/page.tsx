@@ -1,8 +1,10 @@
-// slug/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@/utils/supabase/client";
+import { Article } from "@lib/types/index";
+
+
 
 
 type BlogPostPageProps = {
@@ -12,10 +14,12 @@ type BlogPostPageProps = {
 };
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
-    const supabase = createClientComponentClient();
+    const supabase = createClient();
+
     const resolvedParams = React.use(params); // ✅ 使用 React.use 解包 Promise
     const { slug } = resolvedParams;
     const [comment, setComment] = useState("");
+
     // const [user, setUser] = useState<any>(null);
 
     const [comments, setComments] = useState<string[]>([]);
@@ -42,7 +46,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session?.user ?? null);
+            setSession(session?.user);
             console.log("Auth state changed:", session?.user);
         });
 
@@ -93,16 +97,55 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         setComment(e.target.value);
     };
 
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
         if (!session) {
             alert("请先登录后再发表评论");
-            router.push("/login"); // 假设你有登录页面路径
+            router.push("/login");
             return;
         }
-        if (comment.trim() !== "") {
-            setComments([...comments, comment]);
-            setComment("");
+        if (comment.trim() === "") {
+            alert("评论内容不能为空");
+            return;
         }
+        try {
+            // Create a new comment object with content and timestamp
+            const newComment = {
+                content: comment,
+                created_at: new Date().toISOString(), // Current date and time in ISO format
+            };
+
+            // Get the current comments from the post
+            const currentComments = post.comments || [];
+
+            // Add the new comment to the current comments
+            const updatedComments = [...currentComments, newComment];
+
+            // Update the article in Supabase with the new comments
+            const { data, error } = await supabase
+                .from("articles")
+                .update({ comments: updatedComments })
+                .eq("id", post.id)
+                .single();
+
+            if (error) {
+                console.error("Error updating article:", error);
+                alert("评论发布失败，请稍后重试");
+                return;
+            }
+
+            // Update the local state with the new comments
+            setPost((prevPost: Article) => ({
+                ...prevPost,
+                comments: updatedComments,
+            }));
+
+            // Clear the comment input
+            setComment("");
+        } catch (error) {
+            console.error("Error handling submit comment:", error);
+            alert("评论发布失败，请稍后重试");
+        }
+
     };
 
     return (
@@ -132,19 +175,19 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="mb-8 max-w-3xl mx-auto">
                 <h2 className="text-xl font-bold mb-4">评论</h2>
                 <div className="border rounded p-4">
-                    <p>session{session}</p>
+                    {/* <p>session{session}</p> */}
                     <textarea
-                        placeholder={session ? "请输入评论..." : "请先登录后再评论"}
+                        placeholder={session?.email ? "请输入评论..." : "请先登录后再评论"}
                         value={comment}
                         onChange={handleCommentChange}
-                        disabled={!session} // 未登录禁用输入框
-                        className={`w-full p-2 border rounded mb-4 ${!session ? "bg-gray-100 cursor-not-allowed" : ""
+                        disabled={!session?.email} // 未登录禁用输入框
+                        className={`w-full p-2 border rounded mb-4 ${!session?.email ? "bg-gray-100 cursor-not-allowed" : ""
                             }`}
                     ></textarea>
                     <button
                         onClick={handleSubmitComment}
-                        disabled={!session} // 未登录禁用按钮
-                        className={`px-4 py-2 rounded ${!session ? "bg-gray-300 cursor-not-allowed" : "bg-gray-500 text-white"
+                        disabled={!session?.email} // 未登录禁用按钮
+                        className={`px-4 py-2 rounded ${!session?.email ? "bg-gray-300 cursor-not-allowed" : "bg-gray-500 text-white"
                             }`}
                     >
                         发布评论
@@ -155,8 +198,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 ) : (
                     <div className="mt-4">
                         {post.comments.map((c: any, index: number) => (
-                            <div key={index} className="border-t pt-4">
-                                <p>{c.content}</p>
+                            <div key={index} className="border-t pt-2 pb-2 flex justify-between items-center">
+                                <p>{c?.content}</p>
+                                <p>{c?.created_at ? new Date(c?.created_at).toLocaleDateString() : ''}</p>
                             </div>
                         ))}
                     </div>

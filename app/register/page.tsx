@@ -1,12 +1,12 @@
 
 "use client";
 import { useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@/utils/supabase/client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
-    const supabase = createClientComponentClient();
+    const supabase = createClient();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { Search, Menu } from "lucide-react"
 import { Input } from "./ui/input";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 
 export default function Header() {
-    const supabase = createClientComponentClient();
+    const supabase = createClient();
     const [session, setSession] = useState<any>(null);
 
     useEffect(() => {

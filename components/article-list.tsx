@@ -1,12 +1,17 @@
-// components/article-list.tsx
 import { Box, Card, Flex, Text } from "@radix-ui/themes";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { Article } from "@lib/types/index";
+import { useRouter } from "next/navigation";
+
 
 
 // Update component to accept articles prop
 export default function ArticleList({ articles }: { articles: Article[] }) {
+    const router = useRouter();
+    const gotoMore = (url: string) => {
+        router.push(url)
+    }
     return (
 
         <div className="flex flex-wrap gap-6 justify-start">
@@ -30,11 +35,11 @@ export default function ArticleList({ articles }: { articles: Article[] }) {
                                 </Text>
                             </Box>
                             <Box className="mt-auto pt-4">
-                                <Link href={`/blog/${article.id}`}>
+                                <div onClick={() => gotoMore(`/blog/${article.id}`)}>
                                     <Button color="gray" variant="outline" className="w-full">
                                         阅读全文
                                     </Button>
-                                </Link>
+                                </div>
                             </Box>
                         </Card>
                     </Box>

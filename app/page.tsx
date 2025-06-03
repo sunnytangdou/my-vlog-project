@@ -6,15 +6,14 @@ import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
 import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Box, Card, Flex, Text, Heading } from "@radix-ui/themes";
-// import { createBrowserClient } from "@/lib/supabaseClient";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { Article } from "@lib/types/index";
 
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   useEffect(() => {
     async function fetchArticles() {

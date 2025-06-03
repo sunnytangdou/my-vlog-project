@@ -1,8 +1,6 @@
-// app/login/page.tsx
 "use client";
 import { useState } from "react";
-// import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { createBrowserClient } from "@lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
 // import Alert from "./../../components/Alert";
@@ -11,7 +9,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
-  // const supabase = createClientComponentClient();
   // const { showAlert } = useAlert();
   const router = useRouter();
 
@@ -20,7 +17,8 @@ export default function LoginPage() {
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
-    const supabase = createBrowserClient();
+    const supabase = createClient();
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -35,7 +33,7 @@ export default function LoginPage() {
   }
 
   async function handleOAuthLogin(provider: "google" | "github") {
-    const supabase = createBrowserClient();
+    const supabase = createClient();
     const { data } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}` },
@@ -54,7 +52,7 @@ export default function LoginPage() {
       alert("请输入有效的邮箱地址");
       return;
     }
-    const supabase = createBrowserClient();
+    const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback`, // Redirect URL after password reset
     });
